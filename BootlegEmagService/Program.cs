@@ -8,14 +8,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 
+
 namespace BootlegEmagService
 {
     public class Program
     {
         public static void Main(string[] args)
         {
-
-
             CreateHostBuilder(args).Build().Run();
 
         }
