@@ -37,21 +37,29 @@ namespace BootlegEmagService.Controllers
             using var check = new SQLiteCommand(stm, con);
             using SQLiteDataReader rdr = check.ExecuteReader();
             if (rdr.Read()) {
+
                 return "user deja existent";
             
-            }else
+
+            //check if role exists
+            }else if(role=="ADMIN" || role == "SHOPPER" || role == "SELLER")
              {
                 // insert user into table
-                 cmd.CommandText = "INSERT INTO user(name, password, role ) VALUES(@name, @password, @role)";
+                 cmd.CommandText = "INSERT INTO user(name, password, role, count) VALUES(@name, @password, @role, @count)";
                  cmd.Parameters.AddWithValue("@name", name);
                  cmd.Parameters.AddWithValue("@password", password);
                  cmd.Parameters.AddWithValue("@role", role);
+                 cmd.Parameters.AddWithValue("@count", "1");
                  cmd.Prepare();
                  cmd.ExecuteNonQuery();
 
-                 return "User adaugat";
+                 return $"User {name} adaugat !";
 
-             }
+            }
+            else
+            {
+                return $"Rolul {role} este inexistent!";
+            }
             return "nothing";
         }
     }

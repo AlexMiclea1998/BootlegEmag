@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 
+
 namespace BootlegEmagService.Controllers
 {
     
@@ -19,7 +20,7 @@ namespace BootlegEmagService.Controllers
         [HttpPost]
         public String login(string name, string password)
         {
-
+            int count;
             //establish connection
             using var con = new SQLiteConnection(cs);
             con.Open();
@@ -32,15 +33,23 @@ namespace BootlegEmagService.Controllers
             password = Request.Form["password"];
 
             //check if user + password combo exists
-            string stm = $"SELECT * FROM user WHERE name='{name}' AND password='{password}'";
+            string stm = $"SELECT count FROM user WHERE name='{name}' AND password='{password}'";
             using var check = new SQLiteCommand(stm, con);
             using SQLiteDataReader rdr = check.ExecuteReader();
             if (rdr.Read())
             {
-                return "successful";
+                count = Convert.ToInt32(rdr["count"]);
+                int nextCount = count + 1;
+                string stm2 = $"UPDATE user SET count='{nextCount.ToString()}' WHERE name='{name}'";
+                using var check2 = new SQLiteCommand(stm2, con);
+                using SQLiteDataReader rdr1 = check2.ExecuteReader();
+
+                return $"Hello {name}, welcome back this is the {count} time you logged in!";
+                
+
             }
 
-                return "fail";
+                return "User-Password combination doesnt exist!";
 
         }
 
