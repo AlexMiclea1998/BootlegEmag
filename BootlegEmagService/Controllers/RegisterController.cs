@@ -18,7 +18,7 @@ namespace BootlegEmagService.Controllers
 
 
         [HttpPost]
-        public String PostDataToDB(string name, string password, string role) { 
+        public IActionResult PostDataToDB(Models.UserRegisterDTO userRegisterDTO) { 
 
             //establish connection
             using var con = new SQLiteConnection(cs);
@@ -27,10 +27,12 @@ namespace BootlegEmagService.Controllers
             //cmd(Query processor)
             using var cmd = new SQLiteCommand(con);
 
+           
+
             //get parameters from Post request
-            name = Request.Form["name"];
-            password = Request.Form["password"];
-            role = Request.Form["role"];
+            var name = userRegisterDTO.Username;
+            var password = userRegisterDTO.Password;
+            var role = userRegisterDTO.Role;
 
             //check if user exists
             string stm = $"SELECT * FROM user WHERE name='{name}'";
@@ -38,7 +40,7 @@ namespace BootlegEmagService.Controllers
             using SQLiteDataReader rdr = check.ExecuteReader();
             if (rdr.Read()) {
 
-                return "user deja existent";
+                return BadRequest();
             
 
             //check if role exists
@@ -53,12 +55,17 @@ namespace BootlegEmagService.Controllers
                  cmd.Prepare();
                  cmd.ExecuteNonQuery();
 
-                 return $"User {name} adaugat !";
+                BootlegEmagService.Models.User user = new Models.User(name, password, role);
+
+
+                return Ok(user); ;
 
             }
             else
             {
-                return $"Rolul {role} este inexistent!";
+                string error = $"Rolul {role} nu exista!";
+
+                return NotFound(error);
             }
         }
     }
