@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Data.SQLite;
-
+using BootlegEmagService.Models;
 
 namespace BootlegEmagService.Controllers
 {
@@ -18,7 +18,7 @@ namespace BootlegEmagService.Controllers
         private string cs = @"URI=file:SQLite\user.db";
 
         [HttpPost]
-        public String login(string name, string password)
+        public String login(UserLoginDTO userLogin)
         {
             int count;
             //establish connection
@@ -29,8 +29,8 @@ namespace BootlegEmagService.Controllers
             using var cmd = new SQLiteCommand(con);
 
             //get parameters from Post request
-            name = Request.Form["name"];
-            password = Request.Form["password"];
+            var name = userLogin.Username;
+            var password = userLogin.Password;
 
             //check if user + password combo exists
             string stm = $"SELECT count FROM user WHERE name='{name}' AND password='{password}'";
@@ -52,8 +52,5 @@ namespace BootlegEmagService.Controllers
                 return "User-Password combination doesnt exist!";
 
         }
-
-
-
     }
 }

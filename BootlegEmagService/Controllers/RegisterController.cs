@@ -60,7 +60,6 @@ namespace BootlegEmagService.Controllers
             {
                 return $"Rolul {role} este inexistent!";
             }
-            return "nothing";
         }
     }
 }
