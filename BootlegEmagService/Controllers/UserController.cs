@@ -8,75 +8,124 @@ using System.Data.SQLite;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Data.SQLite;
+using BootlegEmagService.User;
 
 namespace BootlegEmagService.Controllers
 {
-   
+
     [ApiController]
     public class UserController : ControllerBase
     {
         //relative path to db File
         private string cs = @"URI=file:SQLite\user.db";
 
+        public UserController()
+        {
+            userFacede = new UserFacade(new BootlegEmagService.User.Repository.UserRepository());
+        }
+
+        private UserFacade userFacede;
+
+
+        //Login Done
         [HttpPost]
-        [Route("api/user/delete")]
-        public String deleteUser(string name, string id)
+        [Route("api/user/login")]
+        public IActionResult login(Models.UserLoginDTO userLogin)
         {
 
-            //establish connection
-            using var con = new SQLiteConnection(cs);
-            con.Open();
+            //get parameters from Post request
+            string name = userLogin.Username.ToString();
+            string password = userLogin.Password.ToString();
 
-            //cmd(Query processor)
-            using var cmd = new SQLiteCommand(con);
+            BootlegEmagService.Models.User user = userFacede.login(name, password);
+            if (user != null)
+            {
+                return Ok(user);
+            }
+            return NotFound();
+        }
+
+        //Register done
+        [HttpPost]
+        [Route("api/user/register")]
+        public IActionResult register(Models.UserRegisterDTO userRegisterDTO)
+        {
 
             //get parameters from Post request
-            name = Request.Form["name"];
-            id = Request.Form["id"];
-
-           
-            //check if user + id combo exists
-            string stm = $"SELECT * FROM user WHERE name='{name}' AND id='{id}'";
-            using var check = new SQLiteCommand(stm, con);
-            using SQLiteDataReader rdr = check.ExecuteReader();
-            if (rdr.Read())
+            var name = userRegisterDTO.Username;
+            var password = userRegisterDTO.Password;
+            var role = userRegisterDTO.Role;
+            BootlegEmagService.Models.User user = userFacede.register(name, password, role);
+            if (user != null)
             {
-
-                //delete user
-                string stm2 = $"DELETE FROM user WHERE name='{name}' AND id='{id}'";
-                using var check2 = new SQLiteCommand(stm2, con);
-                return $"User {name} with Id : {id} was successfully deleted!";
+                return Ok(user);
             }
-
-            return $"No user {name} and id: {id} found!";
+            return BadRequest();
 
         }
 
 
-       [HttpGet]
-       [Route("api/user/dropAllUsers")]
-       public String dropAllUsers()
-        {
-            //establish connection
-            using var con = new SQLiteConnection(cs);
-            con.Open();
+            [HttpPost]
+            [Route("api/user/delete")]
+            public String deleteUser(string name, string id)
+            {
 
-            //cmd(Query processor)
-            using var cmd = new SQLiteCommand(con);
+                //establish connection
+                using var con = new SQLiteConnection(cs);
+                con.Open();
 
-            //drop entire table
-            cmd.CommandText = "DROP TABLE IF EXISTS user";
-            cmd.ExecuteNonQuery();
+                //cmd(Query processor)
+                using var cmd = new SQLiteCommand(con);
 
-            //create table again
-            cmd.CommandText = @"CREATE TABLE user(id INTEGER PRIMARY KEY,
+                //get parameters from Post request
+                name = Request.Form["name"];
+                id = Request.Form["id"];
+
+
+                //check if user + id combo exists
+                string stm = $"SELECT * FROM user WHERE name='{name}' AND id='{id}'";
+                using var check = new SQLiteCommand(stm, con);
+                using SQLiteDataReader rdr = check.ExecuteReader();
+                if (rdr.Read())
+                {
+
+                    //delete user
+                    string stm2 = $"DELETE FROM user WHERE name='{name}' AND id='{id}'";
+                    using var check2 = new SQLiteCommand(stm2, con);
+                    return $"User {name} with Id : {id} was successfully deleted!";
+                }
+
+                return $"No user {name} and id: {id} found!";
+
+            }
+
+
+            [HttpGet]
+            [Route("api/user/dropAllUsers")]
+            public String dropAllUsers()
+            {
+                //establish connection
+                using var con = new SQLiteConnection(cs);
+                con.Open();
+
+                //cmd(Query processor)
+                using var cmd = new SQLiteCommand(con);
+
+                //drop entire table
+                cmd.CommandText = "DROP TABLE IF EXISTS user";
+                cmd.ExecuteNonQuery();
+
+                //create table again
+                cmd.CommandText = @"CREATE TABLE user(id INTEGER PRIMARY KEY,
             name TEXT, password TEXT, role TEXT, count TEXT)";
-            cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
 
-            return "Table is clear!";
+                return "Table is clear!";
 
+            }
         }
 
 
     }
-}
+
+
