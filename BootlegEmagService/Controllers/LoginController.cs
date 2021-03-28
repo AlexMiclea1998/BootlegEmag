@@ -18,7 +18,7 @@ namespace BootlegEmagService.Controllers
         private string cs = @"URI=file:SQLite\user.db";
 
         [HttpPost]
-        public String login(UserLoginDTO userLogin)
+        public IActionResult login(UserLoginDTO userLogin)
         {
             int count;
             //establish connection
@@ -44,12 +44,16 @@ namespace BootlegEmagService.Controllers
                 using var check2 = new SQLiteCommand(stm2, con);
                 using SQLiteDataReader rdr1 = check2.ExecuteReader();
 
-                return $"Hello {name}, welcome back this is the {count} time you logged in!";
+                Models.User user = new User("Test", "testpass", "ADMIN");
+
+
+                return Ok(user);
                 
+
 
             }
 
-                return "User-Password combination doesnt exist!";
+            return BadRequest();
 
         }
     }
