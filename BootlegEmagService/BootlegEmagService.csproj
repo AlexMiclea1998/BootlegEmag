@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="SQLite\" />
     <Folder Include="Utils\" />
   </ItemGroup>
 
