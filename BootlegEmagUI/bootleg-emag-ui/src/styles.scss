@@ -16,7 +16,7 @@ body {
 
 .app-header {
 	justify-content: space-between;
-	position: fixed;
+	position: sticky;
 	top: 0;
 	left: 0;
 	right: 0;
@@ -26,6 +26,7 @@ body {
 
 .main-wrapper {
 	height: 100%;
+	margin-top: 5vh;
 }
 
 .positronx {

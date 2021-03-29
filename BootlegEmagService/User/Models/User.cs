@@ -17,11 +17,12 @@ namespace BootlegEmagService.Models
 
 
 
-        public User(string username, string pass , string rol)
+        public User(string username, string pass , string rol , int count)
         {
             name = username;
             password = pass;
             role = rol;
+            counter = count;
         }
 
     }
