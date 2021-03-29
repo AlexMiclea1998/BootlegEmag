@@ -16,9 +16,20 @@ namespace BootlegEmagService.Events
             Repository = new EventRepository();
         }
 
-        public void RegisterUserAction(UserActionEvent userAction)
+        public bool RegisterUserAction(UserActionEvent userAction)
         {
             Repository.RegisterUserAction(userAction);
+            return CheckForDiscount(userAction.UserId);
+        }
+
+        private bool CheckForDiscount(string UserId)
+        {
+            if (Repository.GetLoginActionCount(UserId) == 3)
+            {
+                Repository.RegisterDiscountForUser(UserId);
+                return true;
+            }
+            return false;
         }
 
         public void RegisterProductAction(ProductActionEvent productAction)
