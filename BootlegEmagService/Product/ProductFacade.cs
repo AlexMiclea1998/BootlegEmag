@@ -28,5 +28,9 @@ namespace BootlegEmagService.Product
         {
             return ProductRepository.updateProduct(id, name, category, price, image);
         }
+        public List<Models.Product> getAllProd()
+        {
+            return ProductRepository.getAll();
+        }
     }
 }

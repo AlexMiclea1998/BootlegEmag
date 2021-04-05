@@ -11,7 +11,7 @@ namespace BootlegEmagService.Product.Repository
 
 
         //relative path to db File
-        private string cs = @"URI=file:SQLite\user.db";
+        private string cs = @"URI=file:SQLite\product.db";
 
 
 
@@ -129,6 +129,38 @@ namespace BootlegEmagService.Product.Repository
 
                 return null;
             }
+
+        }
+
+        public List<Models.Product> getAll()
+        {
+            List<Models.Product> list = new List<Models.Product>();
+            int i = 0;
+            //establish connection
+            using var con = new SQLiteConnection(cs);
+            con.Open();
+
+            //cmd(Query processor)
+            using var cmd = new SQLiteCommand(con);
+
+
+            string stm = $"SELECT * FROM product";
+            using var check = new SQLiteCommand(stm, con);
+            using SQLiteDataReader rdr = check.ExecuteReader();
+           
+                while (rdr.Read()) { 
+                
+                string id = Convert.ToString(rdr["id"]);
+                string name = Convert.ToString(rdr["name"]);
+                string category = Convert.ToString(rdr["category"]);
+                string price = Convert.ToString(rdr["price"]);
+                string image = Convert.ToString(rdr["image"]);
+                list.Add(new Models.Product(name, category, price, image));
+               
+            }
+            return list;
+
+
 
         }
     }

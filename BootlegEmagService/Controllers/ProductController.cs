@@ -118,5 +118,22 @@ namespace BootlegEmagService.Controllers
             return BadRequest();
 
         }
+
+        [HttpGet]
+        [Route("api/product/getallProd")]
+        public IActionResult getAllProd()
+        {
+
+            List<BootlegEmagService.Product.Models.Product> resp = new List<BootlegEmagService.Product.Models.Product>();
+            
+               resp = productFacede.getAllProd();
+
+            if (resp != null)
+            {
+                return Ok(productFacede.getAllProd());
+            }
+            //return BadRequest();
+            return Ok(productFacede.getAllProd());
+        }
     }
 }
