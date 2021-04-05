@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BootlegEmagService.ShoppingCart;
+using BootlegEmagService.ShoppingCart.Repository;
+using BootlegEmagService.ShoppingCart.Repository.DataStore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -25,7 +28,15 @@ namespace BootlegEmagService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
             services.AddControllers();
+            services.Configure<ShoppingCartConfiguration>(Configuration.GetSection("SQLiteShoppingCartConfiguration"));
+            services.AddSingleton<IShoppingCartCacheStrategy, InMemoryCacheStrategy>();
+            services.AddSingleton<IShoppingCartDataStoreStrategy, SQLiteDataStoreStrategy>();
+            services.AddSingleton<SQLiteReaderShoppingCartConverter, SQLiteReaderShoppingCartConverter>();
+            services.AddSingleton<ShoppingCartRepository, ShoppingCartRepository>();
+            services.AddSingleton<ShoppingCartFacade, ShoppingCartFacade>();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,6 +50,11 @@ namespace BootlegEmagService
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(x => x
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
 
             app.UseAuthorization();
 
