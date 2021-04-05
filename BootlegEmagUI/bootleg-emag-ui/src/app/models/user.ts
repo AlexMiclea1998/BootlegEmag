@@ -7,7 +7,7 @@ export enum Role {
 export class User {
     username: string;
     password: string;
-    role: Role
+    role: string;
 
     constructor(values: Object = {}) {
         Object.assign(this, values);
