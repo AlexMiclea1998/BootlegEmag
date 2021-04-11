@@ -1,6 +1,7 @@
 import { Component, OnChanges, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { Observable } from "rxjs";
+import { User } from "./models/user";
 import { AuthService } from "./services/auth.service";
 
 @Component({
@@ -11,20 +12,23 @@ import { AuthService } from "./services/auth.service";
 export class AppComponent implements OnInit {
   title = "bootleg-emag";
   isLoggedIn$: boolean; 
-  role = "";
+  user: User = null;
 
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
-    this.role = this.authService.claims();
     this.authService.isLoggedIn.subscribe((value) => {
       this.isLoggedIn$ = value;
+    });
+    this.authService.loggedInUser.subscribe((value) => {
+      this.user = value;
+      console.log('user subscribe', this.user);
     });
   }
 
   logout() {
     this.authService.logout();
-    this.role = "";
+    this.user = null;
     this.router.navigateByUrl("/");
   }
 }

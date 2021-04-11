@@ -34,9 +34,18 @@ export class LoginComponent implements OnInit {
     });
     if (this.user) {
       this.authService.login(this.user).subscribe((user) => {
-        if(user){
-          this.router.navigateByUrl('/home');
+        if (!user) {
+          return;
         }
+        if(user.role === 'SHOPPER'){
+          this.router.navigateByUrl('/products');
+          return;
+        } 
+        if (user.role === 'SELLER') {
+          this.router.navigateByUrl('/home');
+          return;
+        }
+        this.router.navigateByUrl('/home');
       });
     }
   }

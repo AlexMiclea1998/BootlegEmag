@@ -124,7 +124,7 @@ namespace BootlegEmagService.Controllers
         public IActionResult getAllProd()
         {
 
-            List<BootlegEmagService.Product.Models.Product> resp = new List<BootlegEmagService.Product.Models.Product>();
+            List<BootlegEmagService.Product.Models.getProductDTO> resp = new List<BootlegEmagService.Product.Models.getProductDTO>();
             
                resp = productFacede.getAllProd();
 

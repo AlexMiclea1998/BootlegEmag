@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable, of } from "rxjs";
+import { BehaviorSubject, Observable, of, throwError } from "rxjs";
 import { User } from "../models/user";
 import { catchError, map } from "rxjs/operators";
 
@@ -10,22 +10,34 @@ const API_URL = "https://localhost:44337/api/user";
   providedIn: "root",
 })
 export class AuthService {
-  userRole = "";
-  private loggedIn = new BehaviorSubject<boolean>(false); // {1}
+  private user = new BehaviorSubject<User>(null);
+  private loggedIn = new BehaviorSubject<boolean>(false);
 
   get isLoggedIn() {
-    return this.loggedIn.asObservable(); // {2}
+    return this.loggedIn.asObservable();
+  }
+
+  get loggedInUser() {
+    return this.user.asObservable();
   }
 
   constructor(private http: HttpClient) {}
 
   // API: POST/login
   public login(user: User): Observable<User> {
-    this.userRole = user.role;
     this.loggedIn.next(true);
-    return this.http
-      .post<User>(API_URL + "/login", user)
-      .pipe(catchError(this.handleError<User>(`login`)));
+
+    return this.http.post<User>(API_URL + "/login", user).pipe(
+      map((result: User) => {
+        this.user.next(result);
+        return new User(result);
+      }),
+      catchError((err) => {
+        this.loggedIn.next(false);
+        this.user.next(null);
+        return throwError(err);
+      })
+    );
   }
 
   // API: POST/login
@@ -34,22 +46,6 @@ export class AuthService {
   }
 
   public logout() {
-    this.userRole = "";
     this.loggedIn.next(false);
-  }
-
-  public claims(): string {
-    return this.userRole;
-  }
-
-  private handleError<T>(operation = "operation", result?: T) {
-    if (operation === "login") {
-      this.userRole = "";
-    //   this.loggedIn.next(false);
-    }
-    return (error: any): Observable<T> => {
-      console.error(error);
-      return of(result as T);
-    };
   }
 }
