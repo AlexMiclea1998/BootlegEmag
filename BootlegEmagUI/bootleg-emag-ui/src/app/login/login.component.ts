@@ -1,5 +1,6 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewEncapsulation } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { Router } from "@angular/router";
 import { User } from "../models/user";
 import { AuthService } from "../services/auth.service";
 
@@ -7,6 +8,7 @@ import { AuthService } from "../services/auth.service";
   selector: "app-login",
   templateUrl: "./login.component.html",
   styleUrls: ["./login.component.scss"],
+  encapsulation: ViewEncapsulation.None
 })
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
@@ -14,7 +16,8 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -25,17 +28,24 @@ export class LoginComponent implements OnInit {
   }
 
   login() {
-    debugger;
     this.user = new User({
       username: this.loginForm.value.username,
       password: this.loginForm.value.password,
     });
     if (this.user) {
-      this.authService.login(this.user).subscribe(() => {
-        console.log("User is logged in");
-        // this.router.navigateByUrl('/');
-        // TODO: implement service and set user claims instead of reloading the page
-        window.location.reload();
+      this.authService.login(this.user).subscribe((user) => {
+        if (!user) {
+          return;
+        }
+        if(user.role === 'SHOPPER'){
+          this.router.navigateByUrl('/products');
+          return;
+        } 
+        if (user.role === 'SELLER') {
+          this.router.navigateByUrl('/home');
+          return;
+        }
+        this.router.navigateByUrl('/home');
       });
     }
   }
