@@ -1,139 +1,72 @@
-using System.Runtime.InteropServices;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Data.SQLite;
 using BootlegEmagService.Product.Models;
 using BootlegEmagService.Product;
 
 namespace BootlegEmagService.Controllers
 {
-
+    [Route("api/product")]
     [ApiController]
-    
     public class ProductController : ControllerBase
     {
-
-        private string cs = @"URI=file:SQLite\product.db";
+        private ProductFacade Facade { get; set; }
 
         public ProductController()
         {
-            productFacede = new ProductFacade(new BootlegEmagService.Product.Repository.ProductRepository());
+            Facade = new ProductFacade();
         }
 
-        private ProductFacade productFacede;
-
-        //[HttpGet]
-        //[Route("api/product/createTable")]
-        //public IActionResult createTable(Product.Models.Product product)
-        //{
-        //    //establish connection
-        //    using var con = new SQLiteConnection(cs);
-        //    con.Open();
-
-        //    //cmd(Query processor)
-        //    using var cmd = new SQLiteCommand(con);
-
-
-
-        //    //create table again
-        //    cmd.CommandText = @"CREATE TABLE product(id INTEGER PRIMARY KEY,
-        //    name TEXT, category TEXT, price TEXT, image TEXT)";
-        //    cmd.ExecuteNonQuery();
-
-        //    return "Table is created!";
-
-        //}
-
-
+        [Route("create")]
         [HttpPost]
-        [Route("api/product/create")]
-        public IActionResult createProduct(BootlegEmagService.Product.Models.createProductDTO Product)
+        public IActionResult CreateProduct(ProductModel product)
         {
-         
-         
+            var name = product.Name;
+            var category = product.Category;
+            var price = product.Price;
+            var image = product.Image;
+            ProductModel newProduct = Facade.CreateProduct(name, category, price, image);
 
-            //get parameters from Post request
-            var name = Product.Name;
-            var category = Product.Category;
-            var price = Product.Price;
-            var image = Product.Image;
-            BootlegEmagService.Product.Models.Product product = productFacede.createProduct(name, category, price, image);
-
-            if (product != null)
+            if (newProduct != null)
             {
-                return Ok(product);
+                return Ok(newProduct);
             }
             return BadRequest();
 
         }
-           
-        
 
+        [Route("delete")]
         [HttpPost]
-        [Route("api/product/delete")]
-        public IActionResult deleteProduct(BootlegEmagService.Product.Models.deleteProductDTO Product)
+        public IActionResult deleteProduct(ProductModel product)
         {
+            var deletedProduct = Facade.DeleteProduct(product);
 
-
-
-            //get parameters from Post request
-            var id = Product.Id;
-            var name = Product.Name;
-            var category = Product.Category;
-            var price = Product.Price;
-            var image = Product.Image;
-            BootlegEmagService.Product.Models.deleteProductDTO product = productFacede.deleteProduct(id, name, category, price, image);
-
-            if (product != null)
+            if (deletedProduct != null)
             {
                 return Ok();
             }
             return BadRequest();
 
         }
-        [HttpPost]
-        [Route("api/product/update")]
-        public IActionResult updateProduct(Product.Models.updateProductDTO Product)
+
+        [Route("update")]
+        [HttpPost]    
+        public IActionResult updateProduct(ProductDTO product)
         {
+           var updatedProduct = Facade.UpdateProduct(product);
 
-
-            //get parameters from Post request
-            var id = Product.Id; ;
-            var name = Product.Name;
-            var category = Product.Category;
-            var price = Product.Price;
-            var image = Product.Image;
-
-
-            BootlegEmagService.Product.Models.updateProductDTO product = productFacede.updateProduct(id, name, category, price, image);
-
-            if (product != null)
+            if (updatedProduct != null)
             {
-                return Ok(product);
+                return Ok(updatedProduct);
             }
             return BadRequest();
 
         }
 
-        [HttpGet]
-        [Route("api/product/getallProd")]
+        [Route("getall")]
+        [HttpGet]      
         public IActionResult getAllProd()
         {
-
-            List<BootlegEmagService.Product.Models.getProductDTO> resp = new List<BootlegEmagService.Product.Models.getProductDTO>();
-            
-               resp = productFacede.getAllProd();
-
-            if (resp != null)
-            {
-                return Ok(productFacede.getAllProd());
-            }
-            //return BadRequest();
-            return Ok(productFacede.getAllProd());
+            var products = Facade.GetAllProducts();
+            return Ok(products);
         }
     }
 }
