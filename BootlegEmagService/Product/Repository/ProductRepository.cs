@@ -132,9 +132,9 @@ namespace BootlegEmagService.Product.Repository
 
         }
 
-        public List<Models.Product> getAll()
+        public List<Models.getProductDTO> getAll()
         {
-            List<Models.Product> list = new List<Models.Product>();
+            List<Models.getProductDTO> list = new List<Models.getProductDTO>();
             int i = 0;
             //establish connection
             using var con = new SQLiteConnection(cs);
@@ -155,7 +155,7 @@ namespace BootlegEmagService.Product.Repository
                 string category = Convert.ToString(rdr["category"]);
                 string price = Convert.ToString(rdr["price"]);
                 string image = Convert.ToString(rdr["image"]);
-                list.Add(new Models.Product(name, category, price, image));
+                list.Add(new Models.getProductDTO(id, name, category, price, image));
                
             }
             return list;

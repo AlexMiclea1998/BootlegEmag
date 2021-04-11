@@ -15,10 +15,14 @@ export class ProductListComponent implements OnInit {
   highValue: number = 4;
   pageSize: number = 4;
 
-  constructor(private product: ProductService) { }
+  constructor(private productService: ProductService) { }
 
   ngOnInit() {
-    this.products = this.product.getProducts();
+    return this.productService.getProducts().subscribe(
+      products => {
+          this.products = products;
+      }
+  );
   }
 
   pageChanged(event: PageEvent): PageEvent {

@@ -1,11 +1,23 @@
+import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 import { Product } from "../models/product";
+
+const API_URL = "https://localhost:44337/api/product";
 
 @Injectable({
   providedIn: "root",
 })
 export class ProductService {
-  public getProducts(): Product[] {
+
+  constructor(private http: HttpClient) {}
+
+  // API: GET/getallProd
+  public getProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(API_URL + "/getallProd");
+  }
+
+  private getMockedProducts(): Product[]{
     let products = [
       new Product({
         id: "1",
