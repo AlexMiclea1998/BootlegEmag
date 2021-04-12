@@ -11,9 +11,9 @@ namespace BootlegEmagService.Events
     {
         private EventRepository Repository { get; set; }
 
-        public EventFacade()
+        public EventFacade(EventRepository repository)
         {
-            Repository = new EventRepository();
+            Repository = repository;
         }
 
         public bool RegisterUserAction(UserActionEvent userAction)

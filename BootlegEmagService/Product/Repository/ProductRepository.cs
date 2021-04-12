@@ -1,167 +1,125 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Data.SQLite;
+using System.Configuration;
+using BootlegEmagService.Product.Models;
+using Microsoft.Extensions.Options;
+using BootlegEmagService.ShoppingCart;
 
 namespace BootlegEmagService.Product.Repository
 {
     public class ProductRepository
     {
+        private string _connectionString;
 
-
-        //relative path to db File
-        private string cs = @"URI=file:SQLite\product.db";
-
-
-
-        //Register
-        public Models.Product createProduct(string name, string category, string price, string image)
+        public ProductRepository(IOptions<DatabaseConfiguration> configuration)
         {
-
-            //establish connection
-            using var con = new SQLiteConnection(cs);
-            con.Open();
-
-            //cmd(Query processor)
-            using var cmd = new SQLiteCommand(con);
-
-
-            //check if user exists
-            string stm = $"SELECT * FROM product WHERE name='{name}'";
-            using var check = new SQLiteCommand(stm, con);
-            using SQLiteDataReader rdr = check.ExecuteReader();
-            if (rdr.Read())
-            {
-
-                return null;
-
-
-
-            }
-            else
-            {
-                // insert product into table
-                cmd.CommandText = "INSERT INTO product(name, category, price, image) VALUES(@name, @category, @price, @image)";
-
-                cmd.Parameters.AddWithValue("@name", name);
-                cmd.Parameters.AddWithValue("@category", category);
-                cmd.Parameters.AddWithValue("@price", price);
-                cmd.Parameters.AddWithValue("@image", image);
-
-                cmd.Prepare();
-                cmd.ExecuteNonQuery();
-
-                BootlegEmagService.Product.Models.Product product = new Models.Product(name, category, price, image);
-
-
-                return product;
-
-            }
+            _connectionString = configuration.Value.ProductConnectionString;
         }
 
-        public Models.deleteProductDTO deleteProduct(string id, string name, string category, string price, string image)
+        public ProductModel CreateProduct(string name, string category, string price, string image)
         {
-
-            //establish connection
-            using var con = new SQLiteConnection(cs);
-            con.Open();
-
-            //cmd(Query processor)
-            using var cmd = new SQLiteCommand(con);
-
-            //get parameters from Post request
-
-
-
-
-            //check if user + id combo exists
-            string stm = $"SELECT * FROM product WHERE name='{name}'";
-            using var check = new SQLiteCommand(stm, con);
-            using SQLiteDataReader rdr = check.ExecuteReader();
-            if (rdr.Read())
+            using(var connection = new SQLiteConnection(_connectionString))
             {
+                connection.Open();
+                if (FindProduct(name))
+                {
+                    return null;
+                }
+                else
+                {
+                    var command = new SQLiteCommand(_connectionString);
+                    command.CommandText = "INSERT INTO product(name, category, price, image) VALUES(@name, @category, @price, @image)";
+                    command.Parameters.AddWithValue("@name", name);
+                    command.Parameters.AddWithValue("@category", category);
+                    command.Parameters.AddWithValue("@price", price);
+                    command.Parameters.AddWithValue("@image", image);
+                    command.Prepare();
+                    command.ExecuteNonQuery();
+                    connection.Close();
 
-                //delete product
-                string stm2 = $"DELETE FROM product WHERE name='{id}'";
-                using var check2 = new SQLiteCommand(stm2, con);
-                using SQLiteDataReader rdr1 = check2.ExecuteReader();
-                BootlegEmagService.Product.Models.deleteProductDTO product = new BootlegEmagService.Models.deleteProductDTO(id, name, category, price, image);
-                return product;
-            }
+                    return new ProductModel { Name = name, Category = category, Price = price, Image = image };
+                }
+            }         
+        }
 
+        public ProductModel DeleteProduct(ProductModel product)
+        {
+            using(var connection = new SQLiteConnection(_connectionString))
+            {
+                if (FindProduct(product.Name))
+                {
+                    connection.Open();
+                    var command = new SQLiteCommand(_connectionString);
+                    command.CommandText = "DELETE FROM product WHERE name = @name";
+                    command.Parameters.AddWithValue("@name", product.Name);
+                    command.Prepare();
+                    command.ExecuteNonQuery();
+                    connection.Close();
+                    return product;
+                }
+            }         
             return null;
-
-        }
-        public Models.updateProductDTO updateProduct(string id, string name, string category, string price, string image)
-        {
-
-            //establish connection
-            using var con = new SQLiteConnection(cs);
-            con.Open();
-
-            //cmd(Query processor)
-            using var cmd = new SQLiteCommand(con);
-
-         
-
-
-
-            string stm = $"SELECT * FROM product WHERE id='{id}'";
-            using var check = new SQLiteCommand(stm, con);
-            using SQLiteDataReader rdr = check.ExecuteReader();
-            if (rdr.Read())
-            {
-
-                string stm2 = $"UPDATE product SET name= '{name}', category='{category}', price='{price}', image='{image}' WHERE id='{id}'";
-                using var check2 = new SQLiteCommand(stm2, con);
-                using SQLiteDataReader rdr1 = check2.ExecuteReader();
-
-                BootlegEmagService.Product.Models.updateProductDTO product = new BootlegEmagService.Models.updateProductDTO(id, name, category, price, image);
-
-                return product;
-
-
-
-            }
-            else
-            {
-
-                return null;
-            }
-
         }
 
-        public List<Models.getProductDTO> getAll()
+        public ProductDTO UpdateProduct(ProductDTO product)
+        {   
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                if (FindProduct(product.Name))
+                {
+                    connection.Open();
+                    string stm2 = $"UPDATE product SET name= '{product.Name}', category='{product.Category}', price='{product.Price}', image='{product.Image}' WHERE id='{product.Id}'";
+                    var check2 = new SQLiteCommand(stm2, connection);
+                    check2.ExecuteReader();
+                    connection.Close();
+                    return product;
+                }
+                else
+                {
+                    return null;
+                }
+            }        
+        }
+
+        public List<ProductDTO> GetAll()
         {
-            List<Models.getProductDTO> list = new List<Models.getProductDTO>();
-            int i = 0;
-            //establish connection
-            using var con = new SQLiteConnection(cs);
-            con.Open();
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                string command = "SELECT * FROM product";
+                var check = new SQLiteCommand(command, connection);
+                SQLiteDataReader reader = check.ExecuteReader();
+                List<ProductDTO> products = new List<ProductDTO>();
+                while (reader.Read())
+                {
+                    string id = Convert.ToString(reader["id"]);
+                    string name = Convert.ToString(reader["name"]);
+                    string category = Convert.ToString(reader["category"]);
+                    string price = Convert.ToString(reader["price"]);
+                    string image = Convert.ToString(reader["image"]);
+                    products.Add(new ProductDTO { Id = id, Name = name, Category = category, Price = price, Image = image });
+                }
+                connection.Close();
+                return products;
+            }          
+        }
 
-            //cmd(Query processor)
-            using var cmd = new SQLiteCommand(con);
+        private bool FindProduct(string name)
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(_connectionString);
+                command.CommandText = "SELECT COUNT(UserId) FROM product WHERE name = @name";
+                command.Parameters.AddWithValue("@name", name);
+                string result = (string)command.ExecuteScalar();
+                connection.Close();
 
-
-            string stm = $"SELECT * FROM product";
-            using var check = new SQLiteCommand(stm, con);
-            using SQLiteDataReader rdr = check.ExecuteReader();
-           
-                while (rdr.Read()) { 
-                
-                string id = Convert.ToString(rdr["id"]);
-                string name = Convert.ToString(rdr["name"]);
-                string category = Convert.ToString(rdr["category"]);
-                string price = Convert.ToString(rdr["price"]);
-                string image = Convert.ToString(rdr["image"]);
-                list.Add(new Models.getProductDTO(id, name, category, price, image));
-               
-            }
-            return list;
-
-
-
+                if (!string.IsNullOrEmpty(result))
+                    return true;
+                return false;
+            }    
         }
     }
 }

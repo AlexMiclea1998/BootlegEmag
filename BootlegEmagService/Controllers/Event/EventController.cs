@@ -2,22 +2,18 @@
 using BootlegEmagService.Events;
 using BootlegEmagService.Events.Model;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BootlegEmagService.Controllers
 {
-    [Route("api/events")]
     [ApiController]
+    [Route("api/events")]
     public class EventController : ControllerBase
     {
-        private EventFacade Facade { get; set; }
+        private EventFacade Facade;
 
-        public EventController()
+        public EventController(EventFacade facade)
         {
-            Facade = new EventFacade();
+            Facade = facade;
         }
 
         [HttpGet("{userId}")]
