@@ -1,18 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using BootlegEmagService.Events;
+using BootlegEmagService.Events.Repository;
+using BootlegEmagService.Product;
+using BootlegEmagService.Product.Repository;
 using BootlegEmagService.ShoppingCart;
 using BootlegEmagService.ShoppingCart.Repository;
 using BootlegEmagService.ShoppingCart.Repository.DataStore;
+using BootlegEmagService.User;
+using BootlegEmagService.User.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace BootlegEmagService
 {
@@ -30,12 +29,28 @@ namespace BootlegEmagService
         {
             services.AddCors();
             services.AddControllers();
-            services.Configure<ShoppingCartConfiguration>(Configuration.GetSection("SQLiteShoppingCartConfiguration"));
+
+            //Database
+            services.Configure<DatabaseConfiguration>(Configuration.GetSection("DatabaseConfiguration"));
+
+            //Shopping Cart
             services.AddSingleton<IShoppingCartCacheStrategy, InMemoryCacheStrategy>();
             services.AddSingleton<IShoppingCartDataStoreStrategy, SQLiteDataStoreStrategy>();
             services.AddSingleton<SQLiteReaderShoppingCartConverter, SQLiteReaderShoppingCartConverter>();
             services.AddSingleton<ShoppingCartRepository, ShoppingCartRepository>();
             services.AddSingleton<ShoppingCartFacade, ShoppingCartFacade>();
+
+            //Event
+            services.AddSingleton<EventRepository, EventRepository>();
+            services.AddSingleton<EventFacade, EventFacade>();
+
+            //User
+            services.AddSingleton<UserRepository, UserRepository>();
+            services.AddSingleton<UserFacade, UserFacade>();
+
+            //Product
+            services.AddSingleton<ProductRepository, ProductRepository>();
+            services.AddSingleton<ProductFacade, ProductFacade>();
             
         }
 

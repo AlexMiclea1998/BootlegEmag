@@ -15,9 +15,9 @@ namespace BootlegEmagService.ShoppingCart.Repository.DataStore
         private string _connectionString;
         private static object _lock = new object();
 
-        public SQLiteDataStoreStrategy(IOptions<ShoppingCartConfiguration> configuration, SQLiteReaderShoppingCartConverter converter)
+        public SQLiteDataStoreStrategy(IOptions<DatabaseConfiguration> configuration, SQLiteReaderShoppingCartConverter converter)
         {
-            _connectionString = configuration.Value.ConnectionString;
+            _connectionString = configuration.Value.ShoppingCartConnectionString;
             Converter = converter;
         }
 

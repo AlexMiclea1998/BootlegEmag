@@ -11,9 +11,9 @@ namespace BootlegEmagService.Product
     {
         private ProductRepository ProductRepository { get; set; }
 
-        public ProductFacade()
+        public ProductFacade(ProductRepository repository)
         {
-            ProductRepository = new ProductRepository();
+            ProductRepository = repository;
         }
 
         public ProductModel CreateProduct(string name, string category, string price, string image)
@@ -25,10 +25,12 @@ namespace BootlegEmagService.Product
         {
             return ProductRepository.DeleteProduct(product);
         }
+
         public ProductDTO UpdateProduct(ProductDTO product)
         {
             return ProductRepository.UpdateProduct(product);
         }
+
         public List<ProductDTO> GetAllProducts()
         {
             return ProductRepository.GetAll();

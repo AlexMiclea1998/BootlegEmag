@@ -8,11 +8,11 @@ namespace BootlegEmagService.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private ProductFacade Facade { get; set; }
+        private ProductFacade Facade;
 
-        public ProductController()
+        public ProductController(ProductFacade facade)
         {
-            Facade = new ProductFacade();
+            Facade = facade;
         }
 
         [Route("create")]
@@ -44,7 +44,6 @@ namespace BootlegEmagService.Controllers
                 return Ok();
             }
             return BadRequest();
-
         }
 
         [Route("update")]

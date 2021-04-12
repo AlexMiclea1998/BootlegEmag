@@ -5,98 +5,116 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.Configuration;
 using BootlegEmagService.Models;
+using BootlegEmagService.ShoppingCart;
+using Microsoft.Extensions.Options;
 
 namespace BootlegEmagService.User.Repository
 {
     public class UserRepository
     {
-        private SQLiteConnection _connection;
+        private string _connectionString;
 
-        public UserRepository()
+        public UserRepository(IOptions<DatabaseConfiguration> configuration)
         {
-            OpenDBConnection();
-        }
-
-        private void OpenDBConnection()
-        {
-            if(_connection == null)
-            {
-                var dbPath = ConfigurationManager.ConnectionStrings["UserDBConnection"].ConnectionString;
-                _connection = new SQLiteConnection(dbPath);
-            }
+            _connectionString = configuration.Value.UserConnectionString;
         }
 
         //Login
-        public Models.UserModel find(string name, string password)
+        public UserModel Find(string name, string password)
         {
-            int count;
-
-            _connection.Open();
-
-            //check if user + password combo exists
-            string stm = $"SELECT count FROM user WHERE name='{name}' AND password='{password}'";
-            using var check = new SQLiteCommand(stm, _connection);
-            using SQLiteDataReader rdr = check.ExecuteReader();
-            if (rdr.Read())
+            using (var connection = new SQLiteConnection(_connectionString))
             {
-                count = Convert.ToInt32(rdr["count"]);
-                int nextCount = count + 1;
-                string stm2 = $"UPDATE user SET count='{nextCount.ToString()}' WHERE name='{name}'";
-                using var check2 = new SQLiteCommand(stm2, _connection);
-                using SQLiteDataReader rdr1 = check2.ExecuteReader();
+                int count;
 
-                string stm1 = $"SELECT role FROM user WHERE name='{name}' AND password='{password}'";
-                using var check1 = new SQLiteCommand(stm1, _connection);
-                using SQLiteDataReader rdr2 = check1.ExecuteReader();
-                rdr2.Read();
-                string role = Convert.ToString(rdr2["role"]);
-                _connection.Close();
+                connection.Open();
 
-                UserModel user = new UserModel { Name = name, Password = password, Role = role, Counter = count };
+                //check if user + password combo exists
+                string stm = $"SELECT count FROM user WHERE name='{name}' AND password='{password}'";
+                var check = new SQLiteCommand(stm, connection);
+                SQLiteDataReader rdr = check.ExecuteReader();
+                if (rdr.Read())
+                {
+                    count = Convert.ToInt32(rdr["count"]);
+                    int nextCount = count + 1;
+                    string stm2 = $"UPDATE user SET count='{nextCount.ToString()}' WHERE name='{name}'";
+                    var check2 = new SQLiteCommand(stm2, connection);
+                    SQLiteDataReader rdr1 = check2.ExecuteReader();
 
-                return user;
-            }
-            return null;
+                    string stm1 = $"SELECT role FROM user WHERE name='{name}' AND password='{password}'";
+                    var check1 = new SQLiteCommand(stm1, connection);
+                    SQLiteDataReader rdr2 = check1.ExecuteReader();
+                    rdr2.Read();
+                    string role = Convert.ToString(rdr2["role"]);
+                    connection.Close();
+
+                    UserModel user = new UserModel { Username = name, Password = password, Role = role, Counter = count };
+
+                    return user;
+                }
+                return null;
+            }  
         }
 
-        //Register
-        public UserModel register(string name, string password, string role )
+        public UserModel Register(string name, string password, string role )
         {
-
-            //establish connection
-            _connection.Open();
-
-            //cmd(Query processor)
-            using var cmd = new SQLiteCommand(_connection);
-
-            //check if user exists
-            string stm = $"SELECT * FROM user WHERE name='{name}'";
-            using var check = new SQLiteCommand(stm, _connection);
-            using SQLiteDataReader rdr = check.ExecuteReader();
-            if (rdr.Read())
+            using (var connection = new SQLiteConnection(_connectionString))
             {
-                return null;
-                //check if role exists
-            }
-            else if (role == "ADMIN" || role == "SHOPPER" || role == "SELLER")
-            {
-                // insert user into table
-                cmd.CommandText = "INSERT INTO user(name, password, role, count) VALUES(@name, @password, @role, @count)";
-                cmd.Parameters.AddWithValue("@name", name);
-                cmd.Parameters.AddWithValue("@password", password);
-                cmd.Parameters.AddWithValue("@role", role);
-                cmd.Parameters.AddWithValue("@count", "1");
-                cmd.Prepare();
-                cmd.ExecuteNonQuery();
-                _connection.Close();
-                UserModel user = new UserModel { Name = name, Password = password, Role = role, Counter = 0 };
+                connection.Open();
+                var cmd = new SQLiteCommand(connection);
+                //check if user exists
+                string stm = $"SELECT * FROM user WHERE name='{name}'";
+                var check = new SQLiteCommand(stm, connection);
+                SQLiteDataReader rdr = check.ExecuteReader();
+                if (rdr.Read())
+                {
+                    return null;
+                    //check if role exists
+                }
+                else if (role == "ADMIN" || role == "SHOPPER" || role == "SELLER")
+                {
+                    // insert user into table
+                    cmd.CommandText = "INSERT INTO user(name, password, role, count) VALUES(@name, @password, @role, @count)";
+                    cmd.Parameters.AddWithValue("@name", name);
+                    cmd.Parameters.AddWithValue("@password", password);
+                    cmd.Parameters.AddWithValue("@role", role);
+                    cmd.Parameters.AddWithValue("@count", "1");
+                    cmd.Prepare();
+                    cmd.ExecuteNonQuery();
+                    connection.Close();
+                    UserModel user = new UserModel { Username = name, Password = password, Role = role, Counter = 0 };
 
-                return user;
-            }
-            else
+                    return user;
+                }
+                else
+                {
+                    return null;
+                }
+            }          
+        }
+
+        public UserModel DeleteUser(UserModel user)
+        {
+            using (var connection = new SQLiteConnection(_connectionString))
             {
-                return null;
+                connection.Open();
+                var cmd = new SQLiteCommand(connection);
+
+                //check if user + id combo exists
+                string stm = $"SELECT * FROM user WHERE name='{user.Username}'";
+                var check = new SQLiteCommand(stm, connection);
+                SQLiteDataReader rdr = check.ExecuteReader();
+                if (rdr.Read())
+                {
+                    var command = new SQLiteCommand(_connectionString);
+                    command.CommandText = "DELETE FROM user WHERE name = @username";
+                    command.Parameters.AddWithValue("@username", user.Username);
+                    command.Prepare();
+                    command.ExecuteNonQuery();
+                    connection.Close();
+                    return user;
+                }
             }
+            return null;
         }
     }
 }

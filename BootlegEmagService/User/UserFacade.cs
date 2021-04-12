@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using BootlegEmagService.Models;
 using BootlegEmagService.User.Repository;
 
 namespace BootlegEmagService.User
@@ -15,14 +12,19 @@ namespace BootlegEmagService.User
             UserRepository = userRepository;
         }
         
-        public Models.UserModel login(string name, string pass)
+        public UserModel Login(string name, string pass)
         {   
-                return UserRepository.find(name,pass);
+                return UserRepository.Find(name,pass);
         }
 
-        public Models.UserModel register(string name, string pass, string role)
+        public UserModel Register(string username, string password, string role)
         {
-            return UserRepository.register(name, pass, role);
+            return UserRepository.Register(username, password, role);
+        }
+
+        public UserModel DeleteUser(UserModel user)
+        {
+            return UserRepository.DeleteUser(user);
         }
     }
 }
